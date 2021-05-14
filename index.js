@@ -32,30 +32,31 @@ var shelf = {}
     }
 
     shelf.merge = (a, b) => {
-        var did_something = false
+        var change = null
         if (is_obj(a[0]) && is_obj(b[0])) {
             if (b[1] > a[1]) {
-                did_something = true
+                if (!change) change = [{}, b[1]]
                 a[1] = b[1]
                 for (let [k, v] of Object.entries(a[0]))
                     if (v[1] < a[1]) delete a[0][k]
             }
             for (let [k, v] of Object.entries(b[0])) {
                 if (v[1] < a[1]) continue
-                if (!a[0][k]) {
-                    did_something = true
-                    a[0][k] = [null, -1]
+                if (!a[0][k]) a[0][k] = [null, -1]
+                let diff = shelf.merge(a[0][k], v)
+                if (diff) {
+                    if (!change) change = [{}, b[1]]
+                    change[0][k] = diff
                 }
-                if (shelf.merge(a[0][k], v)) did_something = true
             }
         } else {
             if (b[1] > a[1] || (b[1] == a[1] && greater_than(b[0], a[0]))) {
-                did_something = true
+                change = b
                 a[0] = b[0]
                 a[1] = b[1]
             }
         }
-        return did_something
+        return change
     }
     
     shelf.mask = (s, mask) => {
@@ -160,7 +161,7 @@ var shelf = {}
         }
         return f(x)
     }
-    
+
 })()
 
 if (typeof module != 'undefined') module.exports = shelf

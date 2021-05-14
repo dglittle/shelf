@@ -12,11 +12,14 @@ var a = [{"a":[5,0],"b":[{"c":[42,0]},0]},0]
 if (JSON.stringify(shelf.read(a)) != JSON.stringify(orig)) throw 'fail'
 
 // merge
-var a = [{"a":[5,0],"b":[{"c":[42,0]},0]},0]
+var a = [{"a":[7,0],"b":[{"c":[42,0]},0]},0]
 var b = shelf.get_patch([null, -1], {a: 6, b: {d: 55}})
 var x = shelf.merge(b, a)
-if (JSON.stringify(b) != '[{"a":[6,0],"b":[{"d":[55,0],"c":[42,0]},0]},0]') throw 'fail'
-if (!x) throw 'fail'
+if (JSON.stringify(b) != '[{"a":[7,0],"b":[{"d":[55,0],"c":[42,0]},0]},0]') throw 'fail'
+if (JSON.stringify(x) != '[{"a":[7,0],"b":[{"c":[42,0]},0]},0]') throw 'fail'
+
+var x = shelf.merge(b, a)
+if (x) throw 'fail'
 
 // mask
 var b = [{"a":[6,0],"b":[{"d":[55,0],"c":[42,0]},0]},0]
