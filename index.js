@@ -50,7 +50,7 @@ var shelf = {}
                 }
             }
         } else {
-            if ((a[1] < 0 && b[1] == null) || b[1] > a[1] || (b[1] == a[1] && greater_than(b[0], a[0]))) {
+            if (a[1] == null || (a[1] < 0 && b[1] == null) || b[1] > a[1] || (b[1] == a[1] && greater_than(b[0], a[0]))) {
                 change = [b[0], b[1] ?? 0]
                 a[0] = change[0]
                 a[1] = change[1]
