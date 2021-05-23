@@ -1,6 +1,6 @@
 {
   "name": "@glittle/shelf",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "shelf utilities",
   "main": "index.js",
   "license": "MIT",
