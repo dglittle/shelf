@@ -45,12 +45,12 @@ var shelf = {}
                 if (!a[0][k]) a[0][k] = [null, -1]
                 let diff = shelf.merge(a[0][k], v)
                 if (diff) {
-                    if (!change) change = [{}, b[1]]
+                    if (!change) change = [{}, b[1] ?? 0]
                     change[0][k] = diff
                 }
             }
         } else {
-            if (b[1] && b[1].t == 'add') {
+            if (b[1] == 'add') {
                 change = [a[0] + b[0], a[1] + 1]
                 a[0] = change[0]
                 a[1] = change[1]

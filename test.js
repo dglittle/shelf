@@ -33,6 +33,12 @@ var x = shelf.merge(a, [{c: [100, 0]}, 0])
 if (JSON.stringify(a) != '[{"c":[100,0]},0]') throw 'fail'
 if (JSON.stringify(x) != '[{"c":[100,0]},0]') throw 'fail'
 
+var a = [{a: [{b: [{c: [3, 0]}, 0]}, 0]}, 0]
+var x = shelf.merge(a, [{a: [{b: [{c: [2, 'add']}]}]}])
+
+if (JSON.stringify(a) != '[{"a":[{"b":[{"c":[5,1]},0]},0]},0]') throw 'fail'
+if (JSON.stringify(x) != '[{"a":[{"b":[{"c":[5,1]},0]},0]},0]') throw 'fail'
+
 // mask
 var b = [{"a":[6,0],"b":[{"d":[55,0],"c":[42,0]},0]},0]
 var x = shelf.mask(b, {b: {c: true}})
