@@ -30,34 +30,34 @@ var shelf = {}
             return Object.fromEntries(Object.entries(s[0]).map(([k, v]) => [k, shelf.read(v)]).filter(([k, v]) => v != null))
         } else return s[0]
     }
+    
+    shelf.read_into = (s, to) => {
+        if (is_obj(s[0])) {
+            if (typeof to != 'object') to = {}
+            for (let k of Object.keys(to)) if (!s[0][k]) delete to[k]
+            for (let k of Object.keys(s[0])) to[k] = shelf.read_into(s[0][k], to[k])
+            return to
+        } else return s[0]
+    }
 
     shelf.merge = (a, b) => {
         var change = null
-        if (is_obj(a[0]) && is_obj(b[0])) {
-            if (b[1] > a[1]) {
-                if (!change) change = [{}, b[1]]
-                a[1] = b[1]
-                for (let [k, v] of Object.entries(a[0]))
-                    if (v[1] < a[1]) delete a[0][k]
-            }
+        if (b[1] == 'add') {
+            change = [a[0] + b[0], a[1] + 1]
+            a[0] = change[0]
+            a[1] = change[1]
+        } else if (a[1] == null || (a[1] < 0 && b[1] == null) || b[1] > a[1] || (b[1] == a[1] && greater_than(b[0], a[0]))) {
+            change = [b[0], b[1] ?? 0]
+            a[0] = change[0]
+            a[1] = change[1]
+        } else if (b[1] == a[1] && is_obj(a[0]) && is_obj(b[0])) {
             for (let [k, v] of Object.entries(b[0])) {
-                if (v[1] < a[1]) continue
                 if (!a[0][k]) a[0][k] = [null, -1]
                 let diff = shelf.merge(a[0][k], v)
                 if (diff) {
                     if (!change) change = [{}, b[1] ?? 0]
                     change[0][k] = diff
                 }
-            }
-        } else {
-            if (b[1] == 'add') {
-                change = [a[0] + b[0], a[1] + 1]
-                a[0] = change[0]
-                a[1] = change[1]
-            } else if (a[1] == null || (a[1] < 0 && b[1] == null) || b[1] > a[1] || (b[1] == a[1] && greater_than(b[0], a[0]))) {
-                change = [b[0], b[1] ?? 0]
-                a[0] = change[0]
-                a[1] = change[1]
             }
         }
         return change
@@ -68,72 +68,14 @@ var shelf = {}
     }
 
     shelf.remote_update = (backend_shelf, frontend, remote_shelf) => {
-    
-        if ((remote_shelf[1] > backend_shelf[1] || (remote_shelf[1] == backend_shelf[1] && greater_than(remote_shelf[0], backend_shelf[0]))) && equal(backend_shelf[0], frontend)) {
-            backend_shelf[1] = remote_shelf[1]
-            
-            if (is_obj(remote_shelf[0])) {
-                if (!is_obj(backend_shelf[0])) {
-                    backend_shelf[0] = {}
-                    frontend = {}
-                } else {
-                    for (let [k, v] of Object.entries(backend_shelf[0])) {
-                        if (v[1] < remote_shelf[1]) {
-                            delete backend_shelf[0][k]
-                            delete frontend[k]
-                        }
-                    }
-                }
-            } else {
-                backend_shelf[0] = frontend = remote_shelf[0]
-            }
-        }
-    
-        if (is_obj(backend_shelf[0]) && is_obj(remote_shelf[0])) {
-            for (let [k, v] of Object.entries(remote_shelf[0])) {
-                if (v[1] < backend_shelf[1]) continue
-                if (!backend_shelf[0][k]) backend_shelf[0][k] = [null, -1]
-                frontend[k] = shelf.remote_update(backend_shelf[0][k], frontend[k], v)
-                if (frontend[k] == null) delete frontend[k]
-            }
-        }
-    
-        return frontend
+        var save_frontend = shelf.read(shelf.get_patch(backend_shelf, frontend))
+        shelf.merge(backend_shelf, remote_shelf)
+        shelf.local_update(backend_shelf, save_frontend)
+        return shelf.read_into(backend_shelf, frontend)
     }    
 
     shelf.local_update = (backend_shelf, frontend) => {
-        if (equal(backend_shelf[0], frontend)) {
-            if (is_obj(frontend)) {
-                var ret = [{}, backend_shelf[1]]
-                for (let [k, v] of Object.entries(backend_shelf[0])) {
-                    if (v[0] != null && frontend[k] == null) {
-                        v[0] = null
-                        v[1]++
-                        ret[0][k] = v
-                    }
-                }
-                for (let [k, v] of Object.entries(frontend)) {
-                    if (!backend_shelf[0][k]) backend_shelf[0][k] = [null, backend_shelf[1] - 1]
-                    let changes = shelf.local_update(backend_shelf[0][k], v)
-                    if (changes) ret[0][k] = changes
-                }
-                return Object.keys(ret[0]).length ? ret : null
-            }
-        } else {
-            backend_shelf[1]++
-            if (is_obj(frontend)) {
-                backend_shelf[0] = {}
-                for (let [k, v] of Object.entries(frontend)) {
-                    if (is_obj(v)) {
-                        backend_shelf[0][k] = [null, backend_shelf[1] - 1]
-                        shelf.local_update(backend_shelf[0][k], v)
-                    } else {
-                        backend_shelf[0][k] = [v, backend_shelf[1]]
-                    }
-                }
-            } else backend_shelf[0] = frontend
-            return backend_shelf
-        }
+        return shelf.merge(backend_shelf, shelf.get_patch(backend_shelf, frontend))
     }
 
     shelf.to_braid = s => {

@@ -11,6 +11,13 @@ var orig = {a: 5, b: {c: 42}}
 var a = [{"a":[5,0],"b":[{"c":[42,0]},0]},0]
 if (JSON.stringify(shelf.read(a)) != JSON.stringify(orig)) throw 'fail'
 
+// read_into
+var orig = {a: 5, b: {c: 42}}
+var a = [{"a":[5,0],"b":[{"c":[42,0]},0]},0]
+var b = {}
+shelf.read_into(a, b)
+if (JSON.stringify(b) != JSON.stringify(orig)) throw 'fail'
+
 // merge
 var a = [{a:[7,0],b:[{c:[42,0]},0]},0]
 var b = shelf.get_patch([null, -1], {a: 6, b: {d: 55}})
@@ -34,7 +41,7 @@ if (JSON.stringify(a) != '[{"c":[100,0]},0]') throw 'fail'
 if (JSON.stringify(x) != '[{"c":[100,0]},0]') throw 'fail'
 
 var a = [{a: [{b: [{c: [3, 0]}, 0]}, 0]}, 0]
-var x = shelf.merge(a, [{a: [{b: [{c: [2, 'add']}]}]}])
+var x = shelf.merge(a, [{a: [{b: [{c: [2, 'add']}, 0]}, 0]}, 0])
 
 if (JSON.stringify(a) != '[{"a":[{"b":[{"c":[5,1]},0]},0]},0]') throw 'fail'
 if (JSON.stringify(x) != '[{"a":[{"b":[{"c":[5,1]},0]},0]},0]') throw 'fail'
