@@ -35,7 +35,10 @@ var shelf = {}
         if (is_obj(s[0])) {
             if (typeof to != 'object') to = {}
             for (let k of Object.keys(to)) if (!s[0][k]) delete to[k]
-            for (let k of Object.keys(s[0])) to[k] = shelf.read_into(s[0][k], to[k])
+            for (let k of Object.keys(s[0])) {
+                to[k] = shelf.read_into(s[0][k], to[k])
+                if (to[k] == null) delete to[k]
+            }
             return to
         } else return s[0]
     }
@@ -72,7 +75,7 @@ var shelf = {}
         shelf.merge(backend_shelf, remote_shelf)
         shelf.local_update(backend_shelf, save_frontend)
         return shelf.read_into(backend_shelf, frontend)
-    }    
+    }
 
     shelf.local_update = (backend_shelf, frontend) => {
         return shelf.merge(backend_shelf, shelf.get_patch(backend_shelf, frontend))

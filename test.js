@@ -8,12 +8,12 @@ if (JSON.stringify(a) != '[{"a":[5,0],"b":[{"c":[42,0]},0]},0]') throw 'fail'
 
 // read
 var orig = {a: 5, b: {c: 42}}
-var a = [{"a":[5,0],"b":[{"c":[42,0]},0]},0]
+var a = [{"a":[5,0],"del":[null,0],"b":[{"c":[42,0]},0]},0]
 if (JSON.stringify(shelf.read(a)) != JSON.stringify(orig)) throw 'fail'
 
 // read_into
 var orig = {a: 5, b: {c: 42}}
-var a = [{"a":[5,0],"b":[{"c":[42,0]},0]},0]
+var a = [{"a":[5,0],"del":[null,1],"b":[{"c":[42,0]},0]},0]
 var b = {}
 shelf.read_into(a, b)
 if (JSON.stringify(b) != JSON.stringify(orig)) throw 'fail'
