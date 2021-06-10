@@ -44,21 +44,27 @@ var shelf = {}
     }
 
     shelf.merge = (a, b) => {
-        var change = null
-        if (b[1] == 'add') {
-            change = [a[0] + b[0], a[1] + 1]
-            a[0] = change[0]
-            a[1] = change[1]
-        } else if (a[1] == null || (a[1] < 0 && b[1] == null) || b[1] > a[1] || (b[1] == a[1] && greater_than(b[0], a[0]))) {
-            change = [b[0], b[1] ?? 0]
-            a[0] = change[0]
-            a[1] = change[1]
-        } else if (b[1] == a[1] && is_obj(a[0]) && is_obj(b[0])) {
+        let change = null
+
+        let both_objs = is_obj(a[0]) && is_obj(b[0])
+
+        if (a[1] == null) a[1] = -1
+        if (b[1] == null) b = [b[0], a[1] + (both_objs ? 0 : 1)]
+        else if (b[1] == 'add') b = [a[0] + b[0], a[1] + 1]
+
+        if (b[1] > a[1] || (b[1] == a[1] && greater_than(b[0], a[0]))) {
+            a[1] = b[1]
+            if (is_obj(b[0])) {
+                a[0] = {}
+                shelf.merge(a, b)
+            } else a[0] = b[0]
+            change = b
+        } else if (b[1] == a[1] && both_objs) {
             for (let [k, v] of Object.entries(b[0])) {
                 if (!a[0][k]) a[0][k] = [null, -1]
                 let diff = shelf.merge(a[0][k], v)
                 if (diff) {
-                    if (!change) change = [{}, b[1] ?? 0]
+                    if (!change) change = [{}, b[1]]
                     change[0][k] = diff
                 }
             }

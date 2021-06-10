@@ -13,11 +13,14 @@ Shelves can be merged. [A, B] and [X, Y] merge like this:
 ``` js
 
 var shelf = require('@glittle/shelf')
+
 or
+
 <script src="https://unpkg.com/@glittle/shelf"></script>
 
 shelf.get_patch(s, patch)
 shelf.read(s)
+shelf.read_into(s, to)
 shelf.merge(a, b)
 shelf.mask(s, mask)
 shelf.remote_update(backend_shelf, frontend, remote_shelf)
