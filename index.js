@@ -46,6 +46,8 @@ var shelf = {}
     shelf.merge = (a, b) => {
         let change = null
 
+        if (!Array.isArray(b)) b = [b]
+
         let both_objs = is_obj(a[0]) && is_obj(b[0])
 
         if (a[1] == null) a[1] = -1
