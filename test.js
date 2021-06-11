@@ -18,6 +18,14 @@ var b = {}
 shelf.read_into(a, b)
 if (JSON.stringify(b) != JSON.stringify(orig)) throw 'fail'
 
+// get_change
+var a = [{a:[5,0],b:[{c:[42,0]},0]},0]
+var b = shelf.merge(null, {a: [6, 1], b: {d: 55}})
+var x = shelf.get_change(b, a)
+
+if (JSON.stringify(b) != '[{"a":[6,1],"b":[{"d":[55,0]},0]},0]') throw 'fail'
+if (JSON.stringify(x) != '[{"b":[{"c":[42,0]},0]},0]') throw 'fail'
+
 // merge
 var a = [{a:[7,0],b:[{c:[42,0]},0]},0]
 var b = shelf.get_patch([null, -1], {a: 6, b: {d: 55}})
