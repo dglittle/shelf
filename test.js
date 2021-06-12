@@ -18,6 +18,10 @@ var b = {}
 shelf.read_into(a, b)
 if (JSON.stringify(b) != JSON.stringify(orig)) throw 'fail'
 
+// get
+var a = [{"a":[5,0],"del":[null,1],"b":[{"c":[42,0]},0]},0]
+if (shelf.get(a, 'b', 'c') !== 42) throw 'fail'
+
 // get_change
 var a = [{a:[5,0],b:[{c:[42,0]},0]},0]
 var b = shelf.merge(null, {a: [6, 1], b: {d: 55}})

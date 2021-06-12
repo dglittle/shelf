@@ -43,6 +43,8 @@ var shelf = {}
         } else return s[0]
     }
 
+    shelf.get = (s, ...path) => path.reduce((cur, x) => cur?.[x]?.[0], s?.[0])
+
     shelf.get_change = (a, b) => {
         return shelf.merge(a, b, true)
     }

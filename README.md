@@ -21,6 +21,7 @@ or
 shelf.get_patch(s, patch)
 shelf.read(s)
 shelf.read_into(s, to)
+shelf.get(s, ...path)
 shelf.merge(a, b)
 shelf.mask(s, mask)
 shelf.remote_update(backend_shelf, frontend, remote_shelf)
