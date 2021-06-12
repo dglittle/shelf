@@ -14,6 +14,7 @@ if (JSON.stringify(shelf.read(a)) != JSON.stringify(orig)) throw 'fail'
 var a = [{"a":[5,0],"del":[null,1],"b":[{"c":[42,0]},0]},0]
 if (shelf.get(a, 'b', 'c') !== 42) throw 'fail'
 if (JSON.stringify(shelf.get(a, 'b')) != '{"c":42}') throw 'fail'
+shelf.get(null)
 
 // read_into
 var orig = {a: 5, b: {c: 42}}

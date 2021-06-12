@@ -27,9 +27,9 @@ var shelf = {}
     
     shelf.read = (s, ...path) => {
         s = path.reduce((s, x) => s?.[0]?.[x], s)
-        if (is_obj(s[0])) {
+        if (s && is_obj(s[0])) {
             return Object.fromEntries(Object.entries(s[0]).map(([k, v]) => [k, shelf.read(v)]).filter(([k, v]) => v != null))
-        } else return s[0]
+        } else return s?.[0]
     }
     shelf.get = shelf.read
     
