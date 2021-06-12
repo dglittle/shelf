@@ -25,11 +25,13 @@ var shelf = {}
         } else return [patch, s[1] + 1]
     }
     
-    shelf.read = s => {
+    shelf.read = (s, ...path) => {
+        s = path.reduce((s, x) => s?.[0]?.[x], s)
         if (is_obj(s[0])) {
             return Object.fromEntries(Object.entries(s[0]).map(([k, v]) => [k, shelf.read(v)]).filter(([k, v]) => v != null))
         } else return s[0]
     }
+    shelf.get = shelf.read
     
     shelf.read_into = (s, to) => {
         if (is_obj(s[0])) {
@@ -42,8 +44,6 @@ var shelf = {}
             return to
         } else return s[0]
     }
-
-    shelf.get = (s, ...path) => path.reduce((cur, x) => cur?.[x]?.[0], s?.[0])
 
     shelf.get_change = (a, b) => {
         return shelf.merge(a, b, true)

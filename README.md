@@ -19,9 +19,8 @@ or
 <script src="https://unpkg.com/@glittle/shelf"></script>
 
 shelf.get_patch(s, patch)
-shelf.read(s)
+shelf.read(s, ...path), shelf.get(s, ...path)
 shelf.read_into(s, to)
-shelf.get(s, ...path)
 shelf.merge(a, b)
 shelf.mask(s, mask)
 shelf.remote_update(backend_shelf, frontend, remote_shelf)
