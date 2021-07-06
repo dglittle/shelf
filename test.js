@@ -1,100 +1,202 @@
 
 var shelf = require('./index.js')
 
-// get_patch
-var orig = {a: 5, b: {c: 42}}
-var a = shelf.get_patch([null, -1], orig)
-if (JSON.stringify(a) != '[{"a":[5,0],"b":[{"c":[42,0]},0]},0]') throw 'fail'
+print(shelf.create({a: {b: 42}, c: 55}))
+print(shelf.to_braid(shelf.create({a: {b: 42}, c: 55})))
+print(shelf.to_braid([{a: [{b: [42, 1]}, 2], c: [55, 3]}, 4]))
+// print(shelf.create({a: 42}))
 
-// read
-var orig = {a: 5, b: {c: 42}}
-var a = [{"a":[5,0],"del":[null,0],"b":[{"c":[42,0]},0]},0]
-if (JSON.stringify(shelf.read(a)) != JSON.stringify(orig)) throw 'fail'
+{
+    let a = [null, -1]
+    let b = [null, -1]
+    let a_msg = [null, -1]
+    let b_msg = [null, -1]
 
-var a = [{"a":[5,0],"del":[null,1],"b":[{"c":[42,0]},0]},0]
-if (shelf.get(a, 'b', 'c') !== 42) throw 'fail'
-if (JSON.stringify(shelf.get(a, 'b')) != '{"c":42}') throw 'fail'
-shelf.get(null)
+    for (var i = 0; i < 10000; i++) {
+        process.stdout.write('.')
 
-// read_into
-var orig = {a: 5, b: {c: 42}}
-var a = [{"a":[5,0],"del":[null,1],"b":[{"c":[42,0]},0]},0]
-var b = {}
-shelf.read_into(a, b)
-if (JSON.stringify(b) != JSON.stringify(orig)) throw 'fail'
+        if (!deep_eq(shelf.from_braid(shelf.to_braid(a)), a)) {
+            print(a)
+            print({to_braid: shelf.to_braid(a)})
+            print({from_braid: shelf.from_braid(shelf.to_braid(a))})
+            throw Error()
+        }
 
-// get_change
-var a = [{a:[5,0],b:[{c:[42,0]},0]},0]
-var b = shelf.merge(null, {a: [6, 1], b: {d: 55}})
-var x = shelf.get_change(b, a)
+        if (!looks_right(a)) throw Error()
+        if (!looks_right(b)) throw Error()
+        if (!looks_right(a_msg)) throw Error()
+        if (!looks_right(b_msg)) throw Error()
 
-if (JSON.stringify(b) != '[{"a":[6,1],"b":[{"d":[55,0]},0]},0]') throw 'fail'
-if (JSON.stringify(x) != '[{"b":[{"c":[42,0]},0]},0]') throw 'fail'
+        if (Math.random() < 0.5) {
+            let tk = tweek(shelf.read(a))
+            let m = shelf.merge(a, shelf.wrap(tk))
+            if (!m) throw Error()
+            shelf.merge(b_msg, m)
+        }
 
-// merge
-var a = [{a:[7,0],b:[{c:[42,0]},0]},0]
-var b = shelf.get_patch([null, -1], {a: 6, b: {d: 55}})
-var x = shelf.merge(b, a)
-if (JSON.stringify(b) != '[{"a":[7,0],"b":[{"d":[55,0],"c":[42,0]},0]},0]') throw 'fail'
-if (JSON.stringify(x) != '[{"a":[7,0],"b":[{"c":[42,0]},0]},0]') throw 'fail'
+        if (Math.random() < 0.5) {
+            let tk = tweek(shelf.read(b))
+            let m = shelf.merge(b, shelf.wrap(tk))
+            if (!m) throw Error()
+            shelf.merge(a_msg, m)
+        }
 
-var x = shelf.merge(b, a)
-if (x) throw 'fail'
+        if (Math.random() < 0.1) {
+            shelf.merge(a, a_msg)
+            shelf.merge(b, b_msg)
+            a_msg = [null, -1]
+            b_msg = [null, -1]
+            if (!deep_eq(shelf.read(a), shelf.read(b))) throw Error()
+        }
+    }
+}
 
-var a = [{a:[7],b:[{c:[42]}]}]
+{
+    let a = [null, -1]
+    let b = [null, -1]
+    let af = null
+    let bf = null
+    let a_msg = [null, -1]
+    let b_msg = [null, -1]
 
-var b = shelf.get_patch([null, -1], {a: 6, b: {d: 55}})
-var x = shelf.merge(b, a)
+    for (var i = 0; i < 10000; i++) {
+        process.stdout.write('.')
 
-if (JSON.stringify(b) != '[{"a":[7,1],"b":[{"d":[55,0],"c":[42,0]},0]},0]') throw 'fail'
-if (JSON.stringify(x) != '[{"a":[7,1],"b":[{"c":[42,0]},0]},0]') throw 'fail'
+        if (!looks_right(a)) throw Error()
+        if (!looks_right(b)) throw Error()
+        if (!looks_right(a_msg)) throw Error()
+        if (!looks_right(b_msg)) throw Error()
 
-var a = [{a: [55, 1], b: [56, 1]}, 0]
-var x = shelf.merge(a, [{a: [100, 0]}, 0])
-if (x) throw 'fail'
+        if (Math.random() < 0.2) af = tweek(af)
 
-var x = shelf.merge(a, [{c: [100]}, 0])
-if (JSON.stringify(x) != '[{"c":[100,0]},0]') throw 'fail'
+        if (Math.random() < 0.2) bf = tweek(bf)
 
-var a = [{c: [101]}, 0]
-var x = shelf.merge(a, [{c: [100, 0]}, 0])
-if (JSON.stringify(a) != '[{"c":[100,0]},0]') throw 'fail'
-if (JSON.stringify(x) != '[{"c":[100,0]},0]') throw 'fail'
+        if (Math.random() < 0.2) {
+            let diff = shelf.local_update(a, af)
+            if (diff) shelf.merge(b_msg, diff)
+            if (!deep_eq(shelf.read(a), af)) throw Error()
+        }
 
-var a = [{a: [{b: [{c: [3, 0]}, 0]}, 0]}, 0]
-var x = shelf.merge(a, [{a: [{b: [{c: [2, 'add']}, 0]}, 0]}, 0])
+        if (Math.random() < 0.2) {
+            let diff = shelf.local_update(b, bf)
+            if (diff) shelf.merge(a_msg, diff)
+            if (!deep_eq(shelf.read(b), bf)) throw Error()
+        }
 
-if (JSON.stringify(a) != '[{"a":[{"b":[{"c":[5,1]},0]},0]},0]') throw 'fail'
-if (JSON.stringify(x) != '[{"a":[{"b":[{"c":[5,1]},0]},0]},0]') throw 'fail'
+        if (Math.random() < 0.1) {
+            af = check_shelf_remote_update(a, af, a_msg)
+            bf = check_shelf_remote_update(b, bf, b_msg)
+            a_msg = [null, -1]
+            b_msg = [null, -1]
+            if (!deep_eq(shelf.read(a), shelf.read(b))) throw Error()
+        }
+    }
+}
 
-var a = [{a: [{b: [{c: [3, 0]}, 0]}, 0]}, 0]
-var x = shelf.merge(a, {a: {b: {c: [2, 'add']}}})
-
-if (JSON.stringify(a) != '[{"a":[{"b":[{"c":[5,1]},0]},0]},0]') throw 'fail'
-if (JSON.stringify(x) != '[{"a":[{"b":[{"c":[5,1]},0]},0]},0]') throw 'fail'
-
-// mask
-var b = [{"a":[6,0],"b":[{"d":[55,0],"c":[42,0]},0]},0]
-var x = shelf.mask(b, {b: {c: true}})
-if (JSON.stringify(x) != '[{"b":[{"c":[42,0]},0]},0]') throw 'fail'
-
-// local_update / remote_update
-var orig = {a: 5, b: {c: 42}}
-var a = [{"a":[5,0],"b":[{"c":[42,0]},0]},0]
-var x = shelf.local_update(a, {a: 5, b: {c: 43}})
-if (JSON.stringify(x) != '[{"b":[{"c":[43,1]},0]},0]') throw 'fail'
-if (JSON.stringify(a) != '[{"a":[5,0],"b":[{"c":[43,1]},0]},0]') throw 'fail'
-
-var b = shelf.get_patch([null, -1], orig)
-var y = shelf.remote_update(b, orig, x)
-if (JSON.stringify(b) != '[{"a":[5,0],"b":[{"c":[43,1]},0]},0]') throw 'fail'
-if (JSON.stringify(y) != '{"a":5,"b":{"c":43}}') throw 'fail'
-
-// to_braid / from_braid
-var a = [{"a":[5,0],"b":[{"c":[42,0]},0]},0]
-var braid = shelf.to_braid(a)
-var b = shelf.from_braid(braid.version, braid.json_slice, braid.values)
-if (JSON.stringify(b) != '[{"a":[5,0],"b":[{"c":[42,0]},0]},0]') throw 'fail'
-
-// done!
 console.log('passed!')
+
+function check_shelf_remote_update(backend, frontend, remote) {
+    let orig = clone({backend, frontend, remote})
+
+    let pre_diff = shelf.local_update(clone(backend), frontend, -3.333)
+
+    frontend = shelf.remote_update(backend, frontend, remote)
+
+    let post_diff = shelf.local_update(clone(backend), frontend, -3.333)
+    if (!is_shelf_subset(post_diff, pre_diff)) {
+        print({pre_diff, post_diff})
+        print(orig)
+        print({backend, frontend, remote})
+        throw Error()
+    }
+
+    let lost_diff = shelf.merge(post_diff, pre_diff)
+    if (!is_shelf_subset(lost_diff, remote)) {
+        print({pre_diff, post_diff, lost_diff})
+        print(orig)
+        print({backend, frontend, remote})
+        throw Error()
+    }
+
+    return frontend
+}
+
+function is_shelf_subset(s, S) {
+    if (!s) return true
+    if (!S) return false
+    if (s[1] != S[1] || !is_obj(s[0]) || !is_obj(S[0])) return true
+
+    for (let [k, v] of Object.entries(s[0]))
+        if (!is_shelf_subset(v, S[0][k])) return false
+    return true
+}
+
+function print(...a) { console.log(...a.map(x => JSON.stringify(x, null, '    '))) }
+
+function clone(o) { return JSON.parse(JSON.stringify(o)) }
+
+function is_obj(o) { return o && typeof o == 'object' && !Array.isArray(o) }
+function equal(a, b) {
+    if (is_obj(a)) return is_obj(b)
+    if (is_obj(b)) return false
+    return JSON.stringify(a) == JSON.stringify(b)
+}
+
+function looks_right(s) {
+    if (!Array.isArray(s)) return false
+    if (s.length < 1 || s.length > 2) return false
+    if (!Number.isInteger(s[1]) && s != null && s != 'add') return false
+    return is_obj(s[0]) ? Object.entries(s[0]).every(([k, v]) => looks_right(v)) : true
+}
+
+function deep_eq(a, b) {
+    if (a && typeof a == 'object' && b && typeof b == 'object') {
+        return Object.entries(a).every(([k, v]) => deep_eq(v, b[k])) && Object.entries(b).every(([k, v]) => deep_eq(v, a[k]))
+    } else return a == b    
+}
+
+function create_random_string() {
+    return String.fromCharCode('a'.charCodeAt(0) + Math.floor(Math.random() * 26)).repeat(Math.floor(Math.random() * 3) + 1)
+}
+
+function create_random_value() {
+    if (Math.random() < 0.2) {
+        let x = {}
+        let n = Math.floor(Math.random() * 4)
+        for (let i = 0; i < n; i++) {
+            let k = create_random_string()
+            x[k] = create_random_value()
+        }
+        return x
+    } else if (Math.random() < 0.25) return Math.floor(Math.random() * 100)
+    else if (Math.random() < 0.333) return create_random_string()
+    else if (Math.random() < 0.5) return Math.random() < 0.5
+    else if (Math.random() < 0.5) return null
+    else {
+        let a = []
+        let n = Math.floor(Math.random() * 4)
+        for (let i = 0; i < n; i++) a.push(create_random_value())
+        return a
+    }
+}
+
+function pick(x) {
+    return x[Math.floor(Math.random() * x.length)]
+}
+
+function tweek(x) {
+    if (is_obj(x)) {
+        if (Math.random() < 0.2) {
+            return null
+        } else {
+            let k = Math.random() < 0.8 && pick(Object.keys(x))
+            if (!k) k = create_random_string()
+            x[k] = tweek(x[k] ?? null)
+            return x
+        }
+    } else {
+        let new_val = x
+        while (equal(new_val, x)) new_val = create_random_value()
+        return new_val
+    }
+}
