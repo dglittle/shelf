@@ -133,48 +133,27 @@ var shelf = {}
         return f
     }
 
-    shelf.proxy = s => {
-        // return new Proxy(s, {
-        //     get(s, k) {
-        //         let v = s[0]?.[k]
-
-        //         if (is_obj(v)) return 
-
-
-        //         if (!v) return null
-
-
-
-        //         if (v) {
-
-        //         }
-
-
-
-        //         let v = s[k]
-
-
-
-
-        //         console.log({o, k})
-        //         return 55
-        //     },
-        //     set(s, k, v) {
-        //         console.log({o, k, v})
-        //     }
-        // })
-
-
-
-
-
-        // let p = new Proxy({}, {
-        // })
-        
-        // p.x = 5
-        // console.log(p.y)
-        
-
+    shelf.proxy = (s, cb) => {
+        return new Proxy(s[0], {
+            get(o, k) {
+                let x = o[k]?.[0]
+                if (x && typeof(x) == 'object') {
+                    return proxy(o[k], delta => {
+                        cb([{[k]: delta}, s[1]])
+                    })
+                } else return x
+            },
+            set(o, k, v) {
+                cb(shelf.merge(s, {[k]: v}))
+            },
+            deleteProperty(o, k) {
+                cb(shelf.merge(s, {[k]: null}))
+            },
+            ownKeys: (o) => {
+                console.log('ownKeys!')
+                return Reflect.ownKeys(o).filter(k => o[k][0] != null)
+            }
+        })
     }
 
     shelf.to_braid = s => {
