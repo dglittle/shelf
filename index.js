@@ -78,6 +78,29 @@ var shelf = {}
         return mask == true || !is_obj(s[0]) ? s : [Object.fromEntries(Object.entries(mask).filter(([k, v]) => s[0][k]).map(([k, v]) => [k, shelf.mask(s[0][k], v)])), s[1]]
     }
 
+    shelf.proxy = (s, cb) => {
+        return new Proxy(s[0], {
+            get(o, k) {
+                let x = o[k]?.[0]
+                if (x && typeof(x) == 'object') {
+                    return shelf.proxy(o[k], delta => {
+                        cb([{[k]: delta}, s[1]])
+                    })
+                } else return x
+            },
+            set(o, k, v) {
+                cb(shelf.merge(s, {[k]: v}))
+            },
+            deleteProperty(o, k) {
+                cb(shelf.merge(s, {[k]: null}))
+            },
+            ownKeys: (o) => {
+                console.log('ownKeys!')
+                return Reflect.ownKeys(o).filter(k => o[k][0] != null)
+            }
+        })
+    }
+    
     shelf.local_update = (backend, frontend, override_new_version) => {
         if (equal(backend[0], frontend)) {
             if (is_obj(frontend)) {
@@ -131,29 +154,6 @@ var shelf = {}
             }
         }
         return f
-    }
-
-    shelf.proxy = (s, cb) => {
-        return new Proxy(s[0], {
-            get(o, k) {
-                let x = o[k]?.[0]
-                if (x && typeof(x) == 'object') {
-                    return proxy(o[k], delta => {
-                        cb([{[k]: delta}, s[1]])
-                    })
-                } else return x
-            },
-            set(o, k, v) {
-                cb(shelf.merge(s, {[k]: v}))
-            },
-            deleteProperty(o, k) {
-                cb(shelf.merge(s, {[k]: null}))
-            },
-            ownKeys: (o) => {
-                console.log('ownKeys!')
-                return Reflect.ownKeys(o).filter(k => o[k][0] != null)
-            }
-        })
     }
 
     shelf.to_braid = s => {
