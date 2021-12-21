@@ -88,16 +88,9 @@ var shelf = {}
                     })
                 } else return x
             },
-            set(o, k, v) {
-                cb(shelf.merge(s, {[k]: v}))
-            },
-            deleteProperty(o, k) {
-                cb(shelf.merge(s, {[k]: null}))
-            },
-            ownKeys: (o) => {
-                console.log('ownKeys!')
-                return Reflect.ownKeys(o).filter(k => o[k][0] != null)
-            }
+            set(o, k, v) { cb(shelf.merge(s, {[k]: v})) },
+            deleteProperty(o, k) { cb(shelf.merge(s, {[k]: null})) },
+            ownKeys(o) { return Reflect.ownKeys(o).filter(k => o[k][0] != null) }
         })
     }
     
