@@ -84,7 +84,7 @@ var shelf = {}
                 let x = o[k]?.[0]
                 if (x && typeof(x) == 'object' && !Array.isArray(x)) {
                     return shelf.proxy(o[k], delta => {
-                        cb([{[k]: delta}, s[1]])
+                        if (delta) cb([{[k]: delta}, s[1]])
                     })
                 } else return x
             },
