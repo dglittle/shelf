@@ -83,13 +83,19 @@ var shelf = {}
             get(o, k) {
                 let x = o[k]?.[0]
                 if (x && typeof(x) == 'object' && !Array.isArray(x)) {
-                    return shelf.proxy(o[k], delta => {
-                        if (delta) cb([{[k]: delta}, s[1]])
-                    })
+                    return shelf.proxy(o[k], delta => cb([{[k]: delta}, s[1]]))
                 } else return x
             },
-            set(o, k, v) { cb(shelf.merge(s, {[k]: v})); return true },
-            deleteProperty(o, k) { cb(shelf.merge(s, {[k]: null})); return true },
+            set(o, k, v) {
+                let x = shelf.merge(s, {[k]: v})
+                if (x) cb(x)
+                return true
+            },
+            deleteProperty(o, k) {
+                let x = shelf.merge(s, {[k]: null})
+                if (x) cb(x)
+                return true
+            },
             ownKeys(o) { return Reflect.ownKeys(o).filter(k => o[k][0] != null) }
         })
     }
