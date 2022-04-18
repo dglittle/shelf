@@ -137,12 +137,13 @@ var shelf = {}
 
     shelf.remote_update = (a, f, b) => {
         if (b[1] > (a[1] ?? -1) || (b[1] == a[1] && greater_than(b[0], a[0]))) {
+            let local_change = Shelf.get_change(a, f)
             a[1] = b[1]
             if (is_obj(b[0])) {
                 a[0] = {}
                 shelf.merge(a, b)
             } else a[0] = b[0]
-            f = shelf.read(a)
+            if (!local_change) f = shelf.read(a)
         } else if (b[1] == a[1] && is_obj(a[0]) && is_obj(b[0])) {
             for (let [k, v] of Object.entries(b[0])) {
                 if (!a[0][k]) a[0][k] = [null, -1]
