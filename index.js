@@ -139,19 +139,23 @@ var shelf = {}
     shelf.remote_update = (a, f, b) => {
         if (b[1] > (a[1] ?? -1) || (b[1] == a[1] && greater_than(b[0], a[0]))) {
             a[1] = b[1]
+            if (!is_obj(a[0]) && is_obj(f) && is_obj(b[0])) {
+                a[0] = {}
+                return shelf.remote_update(a, f, b)
+            }
             if (is_obj(b[0])) {
                 a[0] = {}
                 shelf.merge(a, b)
             } else a[0] = b[0]
             f = shelf.read(a)
         } else if (b[1] == a[1] && is_obj(a[0]) && is_obj(b[0])) {
-            for (let [k, v] of Object.entries(b[0])) {
-                if (!a[0][k]) a[0][k] = [null, -1]
-                if (is_obj(f)) {
+            if (is_obj(f)) {
+                for (let [k, v] of Object.entries(b[0])) {
+                    if (!a[0][k]) a[0][k] = [null, -1]
                     f[k] = shelf.remote_update(a[0][k], f[k], v)
                     if (f[k] == null) delete f[k]
-                } else shelf.merge(a[0][k], v)
-            }
+                }
+            } else shelf.merge(a, b)
         }
         return f
     }
@@ -184,6 +188,27 @@ var shelf = {}
             return [is_obj(x) ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, f(v)])) : x, vs.shift()]
         }
         return f(x)
+    }
+
+    shelf.test = () => {
+        console.log('testing..')
+
+        let a, b, f
+        a = [2, 2]
+        f = 3
+        b = [1, 1]
+        r = shelf.remote_update(a, f, b)
+        if (r != 3) throw 'bad'
+        if (JSON.stringify(a) != '[2,2]') throw 'bad'
+
+        a = [2, 2]
+        f = {a: 1, b: 2}
+        b = [{b: [1, 1]}, 3]
+        r = shelf.remote_update(a, f, b)
+        if (JSON.stringify(a) != '[{"b":[1,1]},3]') throw 'bad'
+        if (JSON.stringify(r) != '{"a":1,"b":1}') throw 'bad'
+
+        console.log('good')
     }
 
 })()
