@@ -1,19 +1,15 @@
 
 var shelf = require('./index.js')
 
-print(shelf.create({a: {b: 42}, c: 55}))
-print(shelf.to_braid(shelf.create({a: {b: 42}, c: 55})))
-print(shelf.to_braid([{a: [{b: [42, 1]}, 2], c: [55, 3]}, 4]))
-// print(shelf.create({a: 42}))
-
-{
+;{
     let a = [null, -1]
     let b = [null, -1]
     let a_msg = [null, -1]
     let b_msg = [null, -1]
 
-    for (var i = 0; i < 10000; i++) {
-        process.stdout.write('.')
+    let n = 10000
+    for (var i = 0; i < n; i++) {
+        if (i % 100 == 0) console.log(`${i}/${n}`)
 
         if (!deep_eq(shelf.from_braid(shelf.to_braid(a)), a)) {
             print(a)
@@ -51,7 +47,7 @@ print(shelf.to_braid([{a: [{b: [42, 1]}, 2], c: [55, 3]}, 4]))
     }
 }
 
-{
+;{
     let a = [null, -1]
     let b = [null, -1]
     let af = null
@@ -59,8 +55,9 @@ print(shelf.to_braid([{a: [{b: [42, 1]}, 2], c: [55, 3]}, 4]))
     let a_msg = [null, -1]
     let b_msg = [null, -1]
 
-    for (var i = 0; i < 10000; i++) {
-        process.stdout.write('.')
+    let n = 10000
+    for (var i = 0; i < n; i++) {
+        if (i % 100 == 0) console.log(`${i}/${n}`)
 
         if (!looks_right(a)) throw Error()
         if (!looks_right(b)) throw Error()
@@ -84,52 +81,50 @@ print(shelf.to_braid([{a: [{b: [42, 1]}, 2], c: [55, 3]}, 4]))
         }
 
         if (Math.random() < 0.1) {
-            af = check_shelf_remote_update(a, af, a_msg)
-            bf = check_shelf_remote_update(b, bf, b_msg)
+            af = shelf.remote_update(a, af, a_msg)
+            bf = shelf.remote_update(b, bf, b_msg)
             a_msg = [null, -1]
             b_msg = [null, -1]
             if (!deep_eq(shelf.read(a), shelf.read(b))) throw Error()
         }
+
+        if (Math.random() < 0.1) {
+            let diff = shelf.local_update(a, af)
+            if (diff) shelf.merge(b_msg, diff)
+
+            diff = shelf.local_update(b, bf)
+            if (diff) shelf.merge(a_msg, diff)
+
+            af = shelf.remote_update(a, af, a_msg)
+            bf = shelf.remote_update(b, bf, b_msg)
+            a_msg = [null, -1]
+            b_msg = [null, -1]
+
+            if (!deep_eq(shelf.read(a), shelf.read(b))) throw Error()
+            if (!deep_eq(shelf.read(a), af)) throw Error()
+            if (!deep_eq(shelf.read(b), bf)) throw Error()
+        }
     }
+}
+
+;{
+    let a, b, f
+    a = [2, 2]
+    f = 3
+    b = [1, 1]
+    r = shelf.remote_update(a, f, b)
+    if (r != 3) throw 'bad'
+    if (JSON.stringify(a) != '[2,2]') throw 'bad'
+
+    a = [2, 2]
+    f = {a: 1, b: 2}
+    b = [{b: [1, 1]}, 3]
+    r = shelf.remote_update(a, f, b)
+    if (JSON.stringify(a) != '[{"b":[1,1]},3]') throw 'bad'
+    if (JSON.stringify(r) != '{"a":1,"b":1}') throw 'bad'
 }
 
 console.log('passed!')
-
-function check_shelf_remote_update(backend, frontend, remote) {
-    let orig = clone({backend, frontend, remote})
-
-    let pre_diff = shelf.local_update(clone(backend), frontend, -3.333)
-
-    frontend = shelf.remote_update(backend, frontend, remote)
-
-    let post_diff = shelf.local_update(clone(backend), frontend, -3.333)
-    if (!is_shelf_subset(post_diff, pre_diff)) {
-        print({pre_diff, post_diff})
-        print(orig)
-        print({backend, frontend, remote})
-        throw Error()
-    }
-
-    let lost_diff = shelf.merge(post_diff, pre_diff)
-    if (!is_shelf_subset(lost_diff, remote)) {
-        print({pre_diff, post_diff, lost_diff})
-        print(orig)
-        print({backend, frontend, remote})
-        throw Error()
-    }
-
-    return frontend
-}
-
-function is_shelf_subset(s, S) {
-    if (!s) return true
-    if (!S) return false
-    if (s[1] != S[1] || !is_obj(s[0]) || !is_obj(S[0])) return true
-
-    for (let [k, v] of Object.entries(s[0]))
-        if (!is_shelf_subset(v, S[0][k])) return false
-    return true
-}
 
 function print(...a) { console.log(...a.map(x => JSON.stringify(x, null, '    '))) }
 
