@@ -190,27 +190,6 @@ var shelf = {}
         return f(x)
     }
 
-    shelf.test = () => {
-        console.log('testing..')
-
-        let a, b, f
-        a = [2, 2]
-        f = 3
-        b = [1, 1]
-        r = shelf.remote_update(a, f, b)
-        if (r != 3) throw 'bad'
-        if (JSON.stringify(a) != '[2,2]') throw 'bad'
-
-        a = [2, 2]
-        f = {a: 1, b: 2}
-        b = [{b: [1, 1]}, 3]
-        r = shelf.remote_update(a, f, b)
-        if (JSON.stringify(a) != '[{"b":[1,1]},3]') throw 'bad'
-        if (JSON.stringify(r) != '{"a":1,"b":1}') throw 'bad'
-
-        console.log('good')
-    }
-
 })()
 
 if (typeof module != 'undefined') module.exports = shelf
