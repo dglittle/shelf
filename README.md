@@ -1,3 +1,7 @@
+# NOTE
+
+As of May 26, 2024, the spirit of this package is moving to [shelf-merge](https://www.npmjs.com/package/shelf-merge).
+
 # shelf
 
 Here is a shelf: [VALUE, VERSION_NUMBER]
