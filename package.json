@@ -1,7 +1,7 @@
 {
-  "name": "@glittle/shelf",
-  "version": "0.1.10",
-  "description": "shelf utilities",
+  "name": "shelf-merge",
+  "version": "0.2.1",
+  "description": "shelf merge function",
   "main": "index.js",
   "license": "MIT",
   "repository": {
