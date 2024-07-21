@@ -1,10 +1,12 @@
 # Install
 
-``` js
-let {shelf_merge} = require('shelf-merge')
+```shell
+npm install shelf-merge
+```
 
 or
 
+```html
 <script src="https://unpkg.com/shelf-merge"></script>
 ```
 
