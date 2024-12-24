@@ -1,218 +1,118 @@
+const assert = require('assert');
+const shelf_merge = require('./index.js');
 
-var shelf_merge = require('./index.js')
+function runTests() {
+    console.log("Running shelf_merge tests...");
 
-let a = shelf_merge([], {hello: "world"})
+    const testCases = [
+        {
+            name: "Initial merge",
+            shelf: [null, null],
+            merge: { hello: "world" },
+            final: [{ hello: "world" }, [1, { hello: 1 }]],
+            change: [{ hello: "world" }, [1, { hello: 1 }]]
+        },
+        {
+            name: "Merge with higher version",
+            shelf: [{ hello: "world" }, [1, { hello: 1 }]],
+            merge: [{ hello: "updated" }, [2, { hello: 2 }]],
+            final: [{ hello: "updated" }, [2, { hello: 2 }]],
+            change: [{ hello: "updated" }, [2, { hello: 2 }]]
+        },
+        {
+            name: "Merge with lower version (no change)",
+            shelf: [{ hello: "world" }, [2, { hello: 2 }]],
+            merge: [{ hello: "old" }, [1, { hello: 1 }]],
+            final: [{ hello: "world" }, [2, { hello: 2 }]],
+            change: null
+        },
+        {
+            name: "Merge new property",
+            shelf: [{ hello: "world" }, [1, { hello: 1 }]],
+            merge: { newProp: "value" },
+            final: [{ hello: "world", newProp: "value" }, [1, { hello: 1, newProp: 1 }]],
+            change: [{ newProp: "value" }, [1, { newProp: 1 }]]
+        },
+        {
+            name: "Merge nested objects",
+            shelf: [{ nested: { a: 1 } }, [1, { nested: [1, { a: 1 }] }]],
+            merge: { nested: { b: 2 } },
+            final: [{ nested: { a: 1, b: 2 } }, [1, { nested: [1, { a: 1, b: 1 }] }]],
+            change: [{ nested: { b: 2 } }, [1, { nested: [1, { b: 1 }] }]]
+        },
+        {
+            name: "Merge array (treated as primitive)",
+            shelf: [{ arr: [1, 2, 3] }, [1, { arr: 1 }]],
+            merge: { arr: [4, 5, 6] },
+            final: [{ arr: [4, 5, 6] }, [1, { arr: 2 }]],
+            change: [{ arr: [4, 5, 6] }, [1, { arr: 2 }]]
+        },
+        {
+            name: "Delete property (set to null)",
+            shelf: [{ a: 1, b: 2 }, [1, { a: 1, b: 1 }]],
+            merge: { b: null },
+            final: [{ a: 1 }, [1, { a: 1, b: 2 }]],
+            change: [{ b: null }, [1, { b: 2 }]]
+        },
+        {
+            name: "Merge with empty object (no change)",
+            shelf: [{ a: 1 }, [1, { a: 1 }]],
+            merge: {},
+            final: [{ a: 1 }, [1, { a: 1 }]],
+            change: null
+        },
+        {
+            name: "Merge primitives with different types",
+            shelf: [{ a: 1 }, [1, { a: 1 }]],
+            merge: { a: "string" },
+            final: [{ a: "string" }, [1, { a: 2 }]],
+            change: [{ a: "string" }, [1, { a: 2 }]]
+        },
+        {
+            name: "Merge with null value",
+            shelf: [{ a: 1, b: 2 }, [1, { a: 1, b: 1 }]],
+            merge: { a: null, c: 3 },
+            final: [{ b: 2, c: 3 }, [1, { a: 2, b: 1, c: 1 }]],
+            change: [{ a: null, c: 3 }, [1, { a: 2, c: 1 }]]
+        },
+        {
+            name: "Merge with same value",
+            shelf: [{ a: 7 }, [1, { a: 1 }]],
+            merge: { a: 7, b: 2 },
+            final: [{ a: 7, b: 2 }, [1, { a: 1, b: 1 }]],
+            change: [{ b: 2 }, [1, { b: 1 }]]
+        },
+        {
+            name: "Merge with same value and version",
+            shelf: [{ a: 7 }, [1, { a: 1 }]],
+            merge: [{ a: 7, b: 2 }, [1, { a: 1, b: 1 }]],
+            final: [{ a: 7, b: 2 }, [1, { a: 1, b: 1 }]],
+            change: [{ b: 2 }, [1, { b: 1 }]]
+        },
+        {
+            name: "Merging with undefined values",
+            shelf: [{ a: 1, b: 2 }, [1, { a: 1, b: 1 }]],
+            merge: { a: undefined, c: 3 },
+            final: [{ a: 1, b: 2, c: 3 }, [1, { a: 1, b: 1, c: 1 }]],
+            change: [{ c: 3 }, [1, { c: 1 }]]
+        },
+        {
+            name: "Deep nested object merging",
+            shelf: [{ a: { b: { c: 1 } } }, [1, { a: [1, { b: [1, { c: 1 }] }] }]],
+            merge: { a: { b: { d: 2 } } },
+            final: [{ a: { b: { c: 1, d: 2 } } }, [1, { a: [1, { b: [1, { c: 1, d: 1 }] }] }]],
+            change: [{ a: { b: { d: 2 } } }, [1, { a: [1, { b: [1, { d: 1 }] }] }]]
+        }
+    ];
 
-console.log(JSON.stringify(a, null, 4))
+    testCases.forEach((testCase, index) => {
+        console.log(`Running test ${index + 1}: ${testCase.name}`);
+        const result = shelf_merge(testCase.shelf, testCase.merge);
+        assert.deepStrictEqual(testCase.shelf, testCase.final, `Test ${index + 1} failed: ${testCase.name} (shelf)`);
+        assert.deepStrictEqual(result, testCase.change, `Test ${index + 1} failed: ${testCase.name} (result)`);
+    });
 
-let b = shelf_merge(a, [ { hello: 'aaa' }, [ 1, { hello: 2 } ] ])
+    console.log("All tests passed successfully!");
+}
 
-console.log(JSON.stringify(b, null, 4))
-
-
-let shelf = [{hello: "world"}, [1, {hello: 1}]]
-
-console.log(shelf[0].hello) // direct reads
-
-let change = shelf_merge(shelf, {more: "data"}) // version info infered
-
-console.log(JSON.stringify(change, null, 4))
-
-console.log(JSON.stringify(shelf, null, 4))
-
-// var shelf = require('./index.js')
-
-// ;{
-//     let a = [null, -1]
-//     let b = [null, -1]
-//     let a_msg = [null, -1]
-//     let b_msg = [null, -1]
-
-//     let n = 10000
-//     for (var i = 0; i < n; i++) {
-//         if (i % 100 == 0) console.log(`${i}/${n}`)
-
-//         if (!deep_eq(shelf.from_braid(shelf.to_braid(a)), a)) {
-//             print(a)
-//             print({to_braid: shelf.to_braid(a)})
-//             print({from_braid: shelf.from_braid(shelf.to_braid(a))})
-//             throw Error()
-//         }
-
-//         if (!looks_right(a)) throw Error()
-//         if (!looks_right(b)) throw Error()
-//         if (!looks_right(a_msg)) throw Error()
-//         if (!looks_right(b_msg)) throw Error()
-
-//         if (Math.random() < 0.5) {
-//             let tk = tweek(shelf.read(a))
-//             let m = shelf.merge(a, shelf.wrap(tk))
-//             if (!m) throw Error()
-//             shelf.merge(b_msg, m)
-//         }
-
-//         if (Math.random() < 0.5) {
-//             let tk = tweek(shelf.read(b))
-//             let m = shelf.merge(b, shelf.wrap(tk))
-//             if (!m) throw Error()
-//             shelf.merge(a_msg, m)
-//         }
-
-//         if (Math.random() < 0.1) {
-//             shelf.merge(a, a_msg)
-//             shelf.merge(b, b_msg)
-//             a_msg = [null, -1]
-//             b_msg = [null, -1]
-//             if (!deep_eq(shelf.read(a), shelf.read(b))) throw Error()
-//         }
-//     }
-// }
-
-// ;{
-//     let a = [null, -1]
-//     let b = [null, -1]
-//     let af = null
-//     let bf = null
-//     let a_msg = [null, -1]
-//     let b_msg = [null, -1]
-
-//     let n = 10000
-//     for (var i = 0; i < n; i++) {
-//         if (i % 100 == 0) console.log(`${i}/${n}`)
-
-//         if (!looks_right(a)) throw Error()
-//         if (!looks_right(b)) throw Error()
-//         if (!looks_right(a_msg)) throw Error()
-//         if (!looks_right(b_msg)) throw Error()
-
-//         if (Math.random() < 0.2) af = tweek(af)
-
-//         if (Math.random() < 0.2) bf = tweek(bf)
-
-//         if (Math.random() < 0.2) {
-//             let diff = shelf.local_update(a, af)
-//             if (diff) shelf.merge(b_msg, diff)
-//             if (!deep_eq(shelf.read(a), af)) throw Error()
-//         }
-
-//         if (Math.random() < 0.2) {
-//             let diff = shelf.local_update(b, bf)
-//             if (diff) shelf.merge(a_msg, diff)
-//             if (!deep_eq(shelf.read(b), bf)) throw Error()
-//         }
-
-//         if (Math.random() < 0.1) {
-//             af = shelf.remote_update(a, af, a_msg)
-//             bf = shelf.remote_update(b, bf, b_msg)
-//             a_msg = [null, -1]
-//             b_msg = [null, -1]
-//             if (!deep_eq(shelf.read(a), shelf.read(b))) throw Error()
-//         }
-
-//         if (Math.random() < 0.1) {
-//             let diff = shelf.local_update(a, af)
-//             if (diff) shelf.merge(b_msg, diff)
-
-//             diff = shelf.local_update(b, bf)
-//             if (diff) shelf.merge(a_msg, diff)
-
-//             af = shelf.remote_update(a, af, a_msg)
-//             bf = shelf.remote_update(b, bf, b_msg)
-//             a_msg = [null, -1]
-//             b_msg = [null, -1]
-
-//             if (!deep_eq(shelf.read(a), shelf.read(b))) throw Error()
-//             if (!deep_eq(shelf.read(a), af)) throw Error()
-//             if (!deep_eq(shelf.read(b), bf)) throw Error()
-//         }
-//     }
-// }
-
-// ;{
-//     let a, b, f
-//     a = [2, 2]
-//     f = 3
-//     b = [1, 1]
-//     r = shelf.remote_update(a, f, b)
-//     if (r != 3) throw 'bad'
-//     if (JSON.stringify(a) != '[2,2]') throw 'bad'
-
-//     a = [2, 2]
-//     f = {a: 1, b: 2}
-//     b = [{b: [1, 1]}, 3]
-//     r = shelf.remote_update(a, f, b)
-//     if (JSON.stringify(a) != '[{"b":[1,1]},3]') throw 'bad'
-//     if (JSON.stringify(r) != '{"a":1,"b":1}') throw 'bad'
-// }
-
-// console.log('passed!')
-
-// function print(...a) { console.log(...a.map(x => JSON.stringify(x, null, '    '))) }
-
-// function clone(o) { return JSON.parse(JSON.stringify(o)) }
-
-// function is_obj(o) { return o && typeof o == 'object' && !Array.isArray(o) }
-// function equal(a, b) {
-//     if (is_obj(a)) return is_obj(b)
-//     if (is_obj(b)) return false
-//     return JSON.stringify(a) == JSON.stringify(b)
-// }
-
-// function looks_right(s) {
-//     if (!Array.isArray(s)) return false
-//     if (s.length < 1 || s.length > 2) return false
-//     if (!Number.isInteger(s[1]) && s != null && s != 'add') return false
-//     return is_obj(s[0]) ? Object.entries(s[0]).every(([k, v]) => looks_right(v)) : true
-// }
-
-// function deep_eq(a, b) {
-//     if (a && typeof a == 'object' && b && typeof b == 'object') {
-//         return Object.entries(a).every(([k, v]) => deep_eq(v, b[k])) && Object.entries(b).every(([k, v]) => deep_eq(v, a[k]))
-//     } else return a == b    
-// }
-
-// function create_random_string() {
-//     return String.fromCharCode('a'.charCodeAt(0) + Math.floor(Math.random() * 26)).repeat(Math.floor(Math.random() * 3) + 1)
-// }
-
-// function create_random_value() {
-//     if (Math.random() < 0.2) {
-//         let x = {}
-//         let n = Math.floor(Math.random() * 4)
-//         for (let i = 0; i < n; i++) {
-//             let k = create_random_string()
-//             x[k] = create_random_value()
-//         }
-//         return x
-//     } else if (Math.random() < 0.25) return Math.floor(Math.random() * 100)
-//     else if (Math.random() < 0.333) return create_random_string()
-//     else if (Math.random() < 0.5) return Math.random() < 0.5
-//     else if (Math.random() < 0.5) return null
-//     else {
-//         let a = []
-//         let n = Math.floor(Math.random() * 4)
-//         for (let i = 0; i < n; i++) a.push(create_random_value())
-//         return a
-//     }
-// }
-
-// function pick(x) {
-//     return x[Math.floor(Math.random() * x.length)]
-// }
-
-// function tweek(x) {
-//     if (is_obj(x)) {
-//         if (Math.random() < 0.2) {
-//             return null
-//         } else {
-//             let k = Math.random() < 0.8 && pick(Object.keys(x))
-//             if (!k) k = create_random_string()
-//             x[k] = tweek(x[k] ?? null)
-//             return x
-//         }
-//     } else {
-//         let new_val = x
-//         while (equal(new_val, x)) new_val = create_random_value()
-//         return new_val
-//     }
-// }
+runTests();

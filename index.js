@@ -19,6 +19,7 @@ function shelf_merge(shelf, incoming) {
     function merge(a_val, a_ver, b_val, b_ver) {
         if (b_ver == null) {
             if (!is_obj(a_val) || !is_obj(b_val)) {
+                if (a_val == b_val) return [a_val, a_ver, null]
                 b_ver = (a_ver ? ver_num(a_ver) : 0) + 1
                 if (is_obj(b_val)) b_ver = [b_ver, make_ver(b_val)]
                 return [b_val, b_ver, [b_val, b_ver]]
@@ -61,7 +62,7 @@ function shelf_merge(shelf, incoming) {
                 }
             }
             return [a_val, a_ver, change]
-        } else if (JSON.stringify(a_val) > JSON.stringify(b_val)) {
+        } else if (JSON.stringify(a_val) >= JSON.stringify(b_val)) {
             return [a_val, a_ver, null]
         } else {
             return [b_val, b_ver, [b_val, b_ver]]
