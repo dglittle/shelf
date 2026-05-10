@@ -54,11 +54,13 @@ function shelf_merge(shelf, incoming) {
                     if (val != null) a_val[key] = val
                     else delete a_val[key]
 
-                    a_ver[1][key] = ver
+                    if (ver != null) a_ver[1][key] = ver
 
-                    if (!change) change = [{}, [ver_num(a_ver), {}]]
-                    change[0][key] = c[0]
-                    change[1][1][key] = c[1]
+                    if (c) {
+                        if (!change) change = [{}, [ver_num(a_ver), {}]]
+                        change[0][key] = c[0]
+                        change[1][1][key] = c[1]
+                    }
                 }
             }
             return [a_val, a_ver, change]

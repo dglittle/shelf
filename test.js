@@ -102,6 +102,13 @@ function runTests() {
             merge: { a: { b: { d: 2 } } },
             final: [{ a: { b: { c: 1, d: 2 } } }, [1, { a: [1, { b: [1, { c: 1, d: 1 }] }] }]],
             change: [{ a: { b: { d: 2 } } }, [1, { a: [1, { b: [1, { d: 1 }] }] }]]
+        },
+        {
+            name: "Setting a non-existent key to null is a no-op",
+            shelf: [{ a: 1 }, [1, { a: 1 }]],
+            merge: { b: null },
+            final: [{ a: 1 }, [1, { a: 1 }]],
+            change: null
         }
     ];
 
