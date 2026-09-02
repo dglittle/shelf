@@ -1,6 +1,6 @@
 {
   "name": "shelf-merge",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "shelf merge function",
   "main": "index.js",
   "license": "MIT",

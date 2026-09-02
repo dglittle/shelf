@@ -72,4 +72,9 @@ function shelf_merge(shelf, incoming) {
     }
 }
 
-if (typeof module != 'undefined') module.exports = shelf_merge
+if (typeof module != 'undefined') {
+    // export the bare function, and also as a named property,
+    // so both `require('shelf-merge')` and `let {shelf_merge} = require('shelf-merge')` work
+    module.exports = shelf_merge
+    module.exports.shelf_merge = shelf_merge
+}
