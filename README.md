@@ -1,7 +1,8 @@
 # Install
 
 ``` js
-let {shelf_merge} = require('shelf-merge')
+let shelf_merge = require('shelf-merge')
+// or: let {shelf_merge} = require('shelf-merge')
 
 or
 
@@ -11,7 +12,7 @@ or
 # Use
 
 ``` js
-let {shelf_merge} = require('shelf-merge')
+let shelf_merge = require('shelf-merge')
 
 let shelf = [{hello: "world"}, [1, {hello: 1}]]
 
