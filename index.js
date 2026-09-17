@@ -64,6 +64,9 @@ function shelf_merge(shelf, incoming) {
                 }
             }
             return [a_val, a_ver, change]
+        } else if (a_val === undefined && b_val === undefined) {
+            // same version, both sides absent (a tombstoned key) → nothing to do
+            return [a_val, a_ver, null]
         } else if (JSON.stringify(a_val) >= JSON.stringify(b_val)) {
             return [a_val, a_ver, null]
         } else {

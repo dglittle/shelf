@@ -104,6 +104,13 @@ function runTests() {
             change: [{ a: { b: { d: 2 } } }, [1, { a: [1, { b: [1, { d: 1 }] }] }]]
         },
         {
+            name: "Re-merging a tombstone at the same version is a no-op (idempotence)",
+            shelf: [{ a: 1 }, [1, { a: 1, b: 3 }]],
+            merge: [{ a: 1 }, [1, { a: 1, b: 3 }]],
+            final: [{ a: 1 }, [1, { a: 1, b: 3 }]],
+            change: null
+        },
+        {
             name: "Setting a non-existent key to null is a no-op",
             shelf: [{ a: 1 }, [1, { a: 1 }]],
             merge: { b: null },
