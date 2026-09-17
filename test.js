@@ -109,6 +109,20 @@ function runTests() {
             merge: { b: null },
             final: [{ a: 1 }, [1, { a: 1 }]],
             change: null
+        },
+        {
+            name: "Local edit 0 → '' is a real change (strict equality)",
+            shelf: [{ x: 0 }, [1, { x: 1 }]],
+            merge: { x: '' },
+            final: [{ x: '' }, [1, { x: 2 }]],
+            change: [{ x: '' }, [1, { x: 2 }]]
+        },
+        {
+            name: "Local edit '1' → 1 is a real change (strict equality)",
+            shelf: [{ x: '1' }, [1, { x: 1 }]],
+            merge: { x: 1 },
+            final: [{ x: 1 }, [1, { x: 2 }]],
+            change: [{ x: 1 }, [1, { x: 2 }]]
         }
     ];
 
